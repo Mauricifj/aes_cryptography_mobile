@@ -1,0 +1,23 @@
+name: aes_cryptography_mobile
+description: A new Flutter project.
+
+publish_to: 'none'
+version: 1.0.0+1
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.0
+  dio: ^3.0.10
+  encrypt: ^4.1.0
+
+dev_dependencies:
+  mockito: 4.1.4
+  test: ^1.15.7
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
