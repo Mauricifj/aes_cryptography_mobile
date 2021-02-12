@@ -1,43 +1,25 @@
-import 'dart:io';
-
 import 'package:aes_cryptography_mobile/utils/api_helper.dart';
-import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-class DioAdapterMock extends Mock implements DefaultHttpClientAdapter {}
+class MockDio extends Mock implements Dio {}
 
 void main() {
-  final Dio dio = Dio();
-
-  setUp(() {
-    dio.httpClientAdapter = setupDioAdapterMock(dio);
-  });
-
   test('Should return encrypted credentials', () async {
     // ARRANGE
-    final encrypted =
+    final mockDio = MockDio();
+    final encryptedCredentials =
         "PYhDXK4rvT1uRFEvtDg+F5J9UUWBsLWEOKxa4QBFamsFGYFzDgSH2CJ4SHZDpJFFSOeCLzgY02GJGP/vXbq8Q+dfyUf/hmEiUidphnl2EiUk0L3NiOaljj9791PsjqOUrPxkYOdqLDGQJdONxtauomRwSRCPuBFhISj6bkGqcP8uNbAPd/amd+rS1QOTGQ35rgEHlGXfse8MgPvQMBHCpvwf0czsS15Ps+UkYKnLxDg=";
-    final httpResponse = ResponseBody.fromString(encrypted, 200);
-    final api = APIHelper(dio: dio);
-
-    when(dio.httpClientAdapter.fetch(any, any, any)).thenAnswer((_) async => httpResponse);
+    final queryParameters = {"data": "encrypted_establishment_code"};
+    when(mockDio.get(any, queryParameters: queryParameters))
+        .thenAnswer((invocation) async => await Future.value(Response(data: encryptedCredentials, statusCode: 200)));
+    final api = APIHelper(dio: mockDio);
 
     // ACT
-    final response = await api.get("credentials", queryParameters: {"data": "encrypted_establishment_code"});
+    final response = await api.get("credentials", queryParameters: queryParameters);
 
     // ASSERT
-    expect(response, equals(encrypted));
+    expect(response, encryptedCredentials);
   });
-}
-
-DioAdapterMock setupDioAdapterMock(Dio dio) {
-  DioAdapterMock dioAdapterMock = DioAdapterMock();
-  // bypass CERTIFICATE_VERIFY_FAILED
-  dioAdapterMock.onHttpClientCreate = (HttpClient client) {
-    client.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
-    return client;
-  };
-  return dioAdapterMock;
 }

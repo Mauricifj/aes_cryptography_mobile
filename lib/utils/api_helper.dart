@@ -14,28 +14,26 @@ class APIHelper {
     _initApiClient();
   }
 
-  //for api helper testing only
-  APIHelper.test({@required this.dio});
-
   void _initApiClient() {
     dio
       // ..options.headers.addAll({'parameter': 'parameter'})
-      ..interceptors.add(
+      ..interceptors?.add(
         InterceptorsWrapper(
           onRequest: (RequestOptions options) => requestInterceptor(options),
           onResponse: (Response response) => responseInterceptor(response),
           onError: (DioError dioError) => errorInterceptor(dioError),
         ),
       )
-      ..options.baseUrl = NetworkConfiguration.networkUrl;
-  }
+      ..options?.baseUrl = NetworkConfiguration.networkUrl;
 
-  Future<dynamic> get(String path, {Map<String, dynamic> queryParameters}) async {
-    // bypass CERTIFICATE_VERIFY_FAILED
-    (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (HttpClient client) {
+    //   // bypass CERTIFICATE_VERIFY_FAILED
+    (dio.httpClientAdapter as DefaultHttpClientAdapter)?.onHttpClientCreate = (HttpClient client) {
       client.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
       return client;
     };
+  }
+
+  Future<dynamic> get(String path, {Map<String, dynamic> queryParameters}) async {
     try {
       final response = await dio.get(path, queryParameters: queryParameters);
       return response.data;
