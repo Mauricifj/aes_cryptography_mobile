@@ -1,12 +1,11 @@
-
+import 'package:aes_cryptography_mobile/components/custom_text_field.dart';
 import 'package:flutter/material.dart';
 
 import 'result_page.dart';
-import '../components/custom_text_field.dart';
+import '../components/custom_form.dart';
 import '../components/error_dialog.dart';
 import '../components/loading.dart';
 import '../services/credential_service.dart';
-import '../utils/server_exception.dart';
 
 const String title = "ESTABLISHMENT CODE";
 
@@ -19,37 +18,29 @@ class RequestPage extends StatefulWidget {
 
 class _RequestPageState extends State<RequestPage> {
   bool _loading = false;
-  bool isTextFieldEmpty = true;
-  TextEditingController _controller;
+  bool _isValid = false;
+  TextEditingController _establishmentCodeController;
+  final _formKey = GlobalKey<FormState>();
 
   void initState() {
     super.initState();
-    _controller = TextEditingController();
-    _controller.addListener(onChangedTextField);
+    _establishmentCodeController = TextEditingController();
   }
 
   void dispose() {
-    _controller.dispose();
+    _establishmentCodeController.dispose();
     super.dispose();
   }
-
-  void onChangedTextField() {
-    setState(() {
-      isTextFieldEmpty = _controller.text.isEmpty;
-    });
-  }
-
-  bool validate(String establishmentCode) => establishmentCode.contains(RegExp(r'^\d+$'));
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: _loading ? Loading() : CustomTextField(controller: _controller),
+      body: _loading ? Loading() : CustomForm(formKey: _formKey, children: [textFieldForEstablishmentCode()]),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.send),
-        onPressed: _loading || isTextFieldEmpty ? null : getCredentials,
-        backgroundColor: _loading || isTextFieldEmpty ? Colors.grey : Colors.blue,
+        onPressed: _isValid && !_loading ? getCredentials : null,
+        backgroundColor: _isValid && !_loading ? Colors.blue : Colors.grey,
       ),
     );
   }
@@ -60,35 +51,24 @@ class _RequestPageState extends State<RequestPage> {
     });
 
     var response;
-    var establishmentCode = _controller.text;
+    var establishmentCode = _establishmentCodeController.text;
 
-    if (validate(establishmentCode)) {
-      try {
-        response = await CredentialService.getCredentials(establishmentCode);
-      } on ServerException catch (exception) {
-        showErrorDialog(message: exception.parsedResponse, context: context);
-      } catch (e) {
-        print(e.toString());
-        showErrorDialog(
-          title: "Error",
-          message: "Something went wrong\nTry again later",
-          context: context,
-        );
-      }
-
-      if (response != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ResultPage(result: response),
-          ),
-        );
-      }
-    } else {
+    try {
+      response = await CredentialService.getCredentials(establishmentCode);
+    } catch (e) {
       showErrorDialog(
-        title: "INVALID",
-        message: "Verify your establishment code and try again",
+        title: "Error",
+        message: "Something went wrong\nTry again later",
         context: context,
+      );
+    }
+
+    if (response != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ResultPage(result: response),
+        ),
       );
     }
 
@@ -96,4 +76,25 @@ class _RequestPageState extends State<RequestPage> {
       _loading = false;
     });
   }
+
+  Widget textFieldForEstablishmentCode() {
+    return CustomTextField(
+      label: "ESTABLISHMENT CODE",
+      controller: _establishmentCodeController,
+      onChanged: (value) {
+        _formKey.currentState.validate();
+        setState(() {
+          _isValid = validate(value);
+        });
+      },
+      validator: (value) {
+        if (value.isEmpty || value == null) return "Please enter your establishment code";
+        if (!validate(value)) return "Please verify your establishment code";
+        return null;
+      },
+      keyboardType: TextInputType.number,
+    );
+  }
+
+  bool validate(String establishmentCode) => _establishmentCodeController.text.contains(RegExp(r'^\d+$'));
 }
