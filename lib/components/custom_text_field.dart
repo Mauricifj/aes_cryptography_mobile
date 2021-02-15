@@ -7,7 +7,7 @@ class CustomTextField extends StatelessWidget {
   final String label;
   final TextInputType keyboardType;
 
-  const CustomTextField({this.label, @required this.controller, this.onChanged, this.validator, this.keyboardType = TextInputType.text});
+  const CustomTextField({Key key, this.label, @required this.controller, this.onChanged, this.validator, this.keyboardType = TextInputType.text}) : super(key:  key);
 
   bool hasOnlyDigits(String establishmentCode) => establishmentCode.contains(RegExp(r'^\d+$'));
 
@@ -16,6 +16,7 @@ class CustomTextField extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: TextFormField(
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         onChanged: onChanged,
         validator: validator,
         keyboardType: keyboardType,
@@ -26,10 +27,7 @@ class CustomTextField extends StatelessWidget {
           border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8.0))),
           suffixIcon: IconButton(
             icon: Icon(Icons.clear),
-            onPressed: () {
-              controller.clear();
-              Form.of(context)?.validate();
-            },
+            onPressed: () => controller.clear(),
           ),
         ),
       ),

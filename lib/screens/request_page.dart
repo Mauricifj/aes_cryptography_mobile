@@ -10,7 +10,9 @@ import '../services/credential_service.dart';
 const String title = "ESTABLISHMENT CODE";
 
 class RequestPage extends StatefulWidget {
-  RequestPage({Key key}) : super(key: key);
+  final CredentialService _credentialService;
+
+  RequestPage({Key key, @required CredentialService credentialService}) : _credentialService = credentialService, super(key: key);
 
   @override
   _RequestPageState createState() => _RequestPageState();
@@ -36,8 +38,14 @@ class _RequestPageState extends State<RequestPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: _loading ? Loading() : CustomForm(formKey: _formKey, children: [textFieldForEstablishmentCode()]),
+      body: _loading
+          ? Loading()
+          : CustomForm(
+              formKey: _formKey, 
+              children: [textFieldForEstablishmentCode()],
+            ),
       floatingActionButton: FloatingActionButton(
+        key: Key("sendButton"),
         child: Icon(Icons.send),
         onPressed: _isValid && !_loading ? getCredentials : null,
         backgroundColor: _isValid && !_loading ? Colors.blue : Colors.grey,
@@ -54,7 +62,7 @@ class _RequestPageState extends State<RequestPage> {
     var establishmentCode = _establishmentCodeController.text;
 
     try {
-      response = await CredentialService.getCredentials(establishmentCode);
+      response = await widget._credentialService.getCredentials(establishmentCode);
     } catch (e) {
       showErrorDialog(
         title: "Error",
@@ -79,10 +87,10 @@ class _RequestPageState extends State<RequestPage> {
 
   Widget textFieldForEstablishmentCode() {
     return CustomTextField(
+      key: Key("establishmentCodeField"),
       label: "ESTABLISHMENT CODE",
       controller: _establishmentCodeController,
       onChanged: (value) {
-        _formKey.currentState.validate();
         setState(() {
           _isValid = validate(value);
         });

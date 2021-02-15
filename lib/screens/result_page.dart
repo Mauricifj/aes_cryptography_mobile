@@ -32,6 +32,7 @@ class _ResultPageState extends State<ResultPage> {
             InformationColumn(title: "MASTER AS SUBORDINATE:", information: widget.result.masterAsSubordinate.toString().toUpperCase()),
             InformationColumn(title: "ESTABLISHMENT CODE:", information: widget.result.establishmentCode),
             ElevatedButton(
+              key: Key("backButton"),
               child: Text("BACK"),
               onPressed: () => Navigator.of(context).pop(),
             )
